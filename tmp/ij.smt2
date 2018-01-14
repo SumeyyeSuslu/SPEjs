@@ -1,0 +1,5 @@
+(declare-const y Int)
+(declare-const q undefined)
+(assert (< a  (* q  y )))
+(check-sat)
+(get-value (q y))
