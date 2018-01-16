@@ -9,11 +9,12 @@ module.exports = function (babel) {
 	var symExec = new SymbolicExecution(env, solver);
 	function evaluate(op, lval, rval) {
 		var res;
-		if (op == "+")
+		/*if (op == "+")
 			res = lval.value + rval.value;
 		else if (op == "-")
-			res = lval.value - rval.value;
-		else if (op == "*")
+			res = lval.value - rval.value;*/
+		//else
+		 if (op == "*")
 			res = lval.value * rval.value;
 		else if (op == "/")
 			res = lval.value / rval.value;
@@ -43,7 +44,6 @@ module.exports = function (babel) {
 			res = lval.value != rval.value;
 		return res;
 	};
-	var conseq, alter;
 	function opPath(res, op, path){
 			var bop = ["<", ">", "<=", ">=", "!=", "=="];
 			if (bop.indexOf(op) == -1) 
@@ -54,7 +54,7 @@ module.exports = function (babel) {
 	//var bop= ["<",">","<=",">=","+","-","*","/","!=","|","&","^","=="];
 	return {
 		visitor: {
-		/*	IfStatement: {
+			IfStatement: {
 				exit(path) {
 					if (path.node.test.type == "BooleanLiteral") {
 						 if (path.node.test.value == true){
@@ -101,34 +101,7 @@ module.exports = function (babel) {
 				}
 					path.skip();
 				}
-			},*/
-			IfStatement: {
-        
-				enter(path){
-				  
-				conseq=null;alter=null;
-				  conseq = path.node.consequent;
-				  delete(path.node.consequent);
-				  if ( path.node.alternate!=null){
-				  alter = path.node.alternate;
-				   delete(path.node.alternate);
-				  }
-				
-				},
-				exit(path) {
-				if(path.node.test.value)
-				  path.replaceWith(conseq);
-				else{
-					if (alter!=null)
-						path.replaceWith(alter);
-					else
-						path.remove();
-					  }
-				  //path.skip();
-			
-				}
-			  },
-
+			},
 			FunctionDeclaration: {
 				enter(path) {
 					for (var i of path.node.params) {
@@ -165,8 +138,8 @@ module.exports = function (babel) {
 
 
 
-			}, */
-
+			}, 
+*/
 
 
 
@@ -234,7 +207,7 @@ module.exports = function (babel) {
 					var op = path.node.operator;
 					var res;
 					if (lval.type == 'NumericLiteral' && rval.type == 'NumericLiteral') {
-						res = evaluate(op, lval, rval);
+						res = path.evaluate();
 						opPath(res,op,path);
 
 					} else if (lval.type == 'BooleanLiteral' && rval.type == 'BooleanLiteral') {

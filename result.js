@@ -1,15 +1,7 @@
+x = 5;
+a = 9;
 
-function power(n, x) {
-  var p = 1;
-  while (n > 0) {
-    if (n % 2 === 0) {
-      x = x * x;
-      n = n / 2;
-    } else {
-      p = 1 * x;
-      n = n - 1;
-    }
-  }
-  return p;
+{
+    a = 2;
+    c = 3;
 }
-var result = power(3, x);

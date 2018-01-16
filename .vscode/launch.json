@@ -10,7 +10,7 @@
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceFolder}/run.js",
-            "args" :["case04.js"]
+            "args" :["case0.js"]
         }
     ]
 }

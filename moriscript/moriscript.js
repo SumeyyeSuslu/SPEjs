@@ -13,7 +13,9 @@ module.exports = function (babel) {
 	return {
 		visitor: {
 
-			/*IfStatement: function (path) {
+			IfStatement: {
+				enter(path){
+						enter(path.node){
 						var tmpCode = babel.transformFromAst(t.file(t.program([t.expressionStatement(path.node.test)])));
 						out.sendCode(tmpCode.code);
 					
@@ -21,8 +23,10 @@ module.exports = function (babel) {
 						path.replaceWith( path.node.alternate);
 						else
 							path.remove();
+					}
+				}
 					
-						},*/
+			},
 
 			//res = art.exec(op,lval,rval);
 
@@ -92,20 +96,21 @@ module.exports = function (babel) {
 					var res;
 					if (lval.type == 'NumericLiteral' && rval.type == 'NumericLiteral') {
 
-						res = art.evaluate(op, lval, rval);
-						path.replaceWith(t.NumericLiteral(res));
+						res = path.evaluate();
+						path.replaceWith(t.NumericLiteral(res.value));
 
 					} else if (lval.type == 'BooleanLiteral' && rval.type == 'BooleanLiteral') {
-						res = art.evaluate(op, lval, rval);
-						if (res)
+						res = path.evaluate();
+						if (res.value)
 							path.replaceWith(t.BooleanLiteral(true));
 						else
 							path.replaceWith(t.BooleanLiteral(false));
 					} else if (lval.type == 'NumericLiteral' && rval.type == 'Identifier') {
 						if (env[rval.name] != null && env[rval.name].value != null) {
 							rval.value = env[rval.name].value;
-							res = art.evaluate(op, lval, rval);
-							path.replaceWith(t.NumericLiteral(res));
+							path.node.right = t.NumericLiteral(rval.value);
+							res = path.evaluate();
+							path.replaceWith(t.NumericLiteral(res.value));
 						}
 
 					} else if (lval.type == 'Identifier' && rval.type == 'NumericLiteral') {

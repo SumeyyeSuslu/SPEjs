@@ -2,7 +2,7 @@
 
 function evaluate(op,lval,rval) {
 		var res;
-				if(op=="+")
+				if(op=="++")
 					res = lval.value + rval.value;
 				else if(op == "-")
 					res = lval.value - rval.value;
