@@ -1,6 +1,0 @@
-(declare-const x Int)
-(assert (not (= x  1 )))
-(assert (not (= x  2 )))
-(assert (not (not (= x  3 ))))
-(check-sat)
-(get-value (x))

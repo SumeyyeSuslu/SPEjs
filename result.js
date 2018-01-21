@@ -1,7 +1,5 @@
-x = 5;
-a = 9;
+//constant propagation
+var t = 3;
+var rx = 4;
 
-{
-    a = 2;
-    c = 3;
-}
+p = 8;

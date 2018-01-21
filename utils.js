@@ -1,6 +1,5 @@
 "use strict";
 var fs = require('fs');
-//var istanbul = require('istanbul');
 function fileExists(file) {
     var statFile;
     var ret;
@@ -27,15 +26,6 @@ function pathExists(path) {
     return ret;
 }
 exports.pathExists = pathExists;
-/*function getInstrumentedSource(file) {
-    if (!fileExists(file)) {
-        return null;
-    }
-    var contentFile = readFile(file, 'utf8');
-    var instrumentedCode = new istanbul.Instrumenter().instrumentSync(contentFile, file);
-    return instrumentedCode;
-}
-exports.getInstrumentedSource = getInstrumentedSource;*/
 function readFile(file, encoding) {
     if (!fileExists(file)) {
         return null;

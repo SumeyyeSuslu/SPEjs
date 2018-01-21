@@ -2,12 +2,12 @@
 var SymbolicExecution = require('./symbolic-execution');
 module.exports = function (babel) {
 	var t = babel.types;
-	var solver = { name: "z3", path: "/usr/bin/z3", tmpPath: "/home/sumeyye/Desktop/task5/tmp" };
+	var solver = { name: "z3", path: "/usr/bin/z3", tmpPath: "/home/sumeyye/Desktop/task6/tmp" };
 	var env = {
-		x: { 'value': null, 'type': "Int" }, y: { 'value': 3, 'type': "Int" },a:{'value':null,'type':"Int"}
+		x: { 'value': null, 'type': "Int" }, y: { 'value': 3, 'type': "Int" },z:{'value':null,'type':"Int"},n:{'value':null,'type':"Int"}
 	};
 	var symExec = new SymbolicExecution(env, solver);
-	function evaluate(op, lval, rval) {
+	/*function evaluate(op, lval, rval) {
 		var res;
 		if (op == "+")
 			res = lval.value + rval.value;
@@ -42,38 +42,47 @@ module.exports = function (babel) {
 		else if (op == "!=")
 			res = lval.value != rval.value;
 		return res;
-	};
-	var conseq, alter;
+	};*/
+	var conseq, alter,skipPath;
 	function opPath(res, op, path){
 			var bop = ["<", ">", "<=", ">=", "!=", "=="];
 			if (bop.indexOf(op) == -1) 
-				path.replaceWith(t.NumericLiteral(res));
+				path.replaceWith(t.NumericLiteral(res.value));
 		    else 
-			    path.replaceWith(t.BooleanLiteral(res));			
+			    path.replaceWith(t.BooleanLiteral(res.value));			
 		}
-	//var bop= ["<",">","<=",">=","+","-","*","/","!=","|","&","^","=="];
 	return {
 		visitor: {
-		/*	IfStatement: {
+			IfStatement: {
+				enter(path){  
+					conseq=null;alter=null;
+					  conseq = path.node.consequent;
+					  delete(path.node.consequent);
+					  if ( path.node.alternate!=null){
+					  alter = path.node.alternate;
+					   delete(path.node.alternate);
+					  }			
+					},
 				exit(path) {
 					if (path.node.test.type == "BooleanLiteral") {
+						skipPath = false;
 						 if (path.node.test.value == true){
-							 if (path.node.consequent.type == "BlockStatement")
-								path.replaceWithMultiple(path.node.consequent.body);
+							 if (conseq.type == "BlockStatement")
+								path.replaceWithMultiple(conseq.body);
 								else 
-								path.replaceWith(path.node.consequent);
+								path.replaceWith(conseq);
 						 }  
 						else {
-						   if (path.node.alternate != null) {
-							    if (path.node.alternate.type == "BlockStatement")
-							        path.replaceWithMultiple(path.node.alternate.body);
+						   if (alter != null) {
+							    if (alter.type == "BlockStatement")
+							        path.replaceWithMultiple(alter.body);
 						        else 
-							        path.replaceWith(path.node.alternate);
+							        path.replaceWith(alter);
 						} else
 							path.remove();
-							//path.replaceWith(path.node.alternate);
 					}						
 					} else {
+						skipPath = false;
 						var tmpCode = babel.transformFromAst(t.file(t.program([t.expressionStatement(path.node.test)])));
 
 						var check_SAT = symExec.solvePathConstraint(tmpCode.code);
@@ -87,48 +96,27 @@ module.exports = function (babel) {
 						else {
 							if (!check_SAT.res.isSAT) { // test unsatisfied, 
 								console.log('test unsatisfied');
-								if (path.node.alternate != null) {
-									if (path.node.alternate.type == "BlockStatement")
-									    path.replaceWithMultiple(path.node.alternate.body);
+								if (alter != null) {
+									if (alter.type == "BlockStatement")
+									    path.replaceWithMultiple(alter.body);
 									else 
-									    path.replaceWith(path.node.alternate);
+									    path.replaceWith(alter);
 
 								} else
 									path.remove();
 							}
-							console.log('test satisfied');
+							else{
+								path.node.consequent = conseq;
+								path.node.alternate = alter;
+								skipPath = true;
+								console.log('test satisfied');
+							}	
 						}
 				}
+				if (skipPath)
 					path.skip();
 				}
-			},*/
-			IfStatement: {
-        
-				enter(path){
-				  
-				conseq=null;alter=null;
-				  conseq = path.node.consequent;
-				  delete(path.node.consequent);
-				  if ( path.node.alternate!=null){
-				  alter = path.node.alternate;
-				   delete(path.node.alternate);
-				  }
-				
-				},
-				exit(path) {
-				if(path.node.test.value)
-				  path.replaceWith(conseq);
-				else{
-					if (alter!=null)
-						path.replaceWith(alter);
-					else
-						path.remove();
-					  }
-				  //path.skip();
-			
-				}
-			  },
-
+			},
 			FunctionDeclaration: {
 				enter(path) {
 					for (var i of path.node.params) {
@@ -143,44 +131,14 @@ module.exports = function (babel) {
 			},
            /* CallExpression:{
                 exit(path){
-                      
-
-
-
-
-
-
-
                     path.skip();
 				}
-
-
-
-
-
-
-
-
-
-
-
-
 			}, */
-
-
-
-
-
-
-
-
-
-
 			AssignmentExpression: {
 				exit(path) {
 					if (path.node.right.type == "NumericLiteral") {
 
-						if (env[path.node.left.name] != null) {//&& env[path.node.left.name].value != null
+						if (env[path.node.left.name] != null) {
 
 							env[path.node.left.name].value = path.node.right.value;
 
@@ -219,8 +177,8 @@ module.exports = function (babel) {
 					var op = path.node.operator;
 					var res;
 					if (lval.type == 'BooleanLiteral' && rval.type == 'BooleanLiteral') {
-						res = evaluate(op, lval, rval);
-						path.replaceWith(t.BooleanLiteral(res));
+						res = path.evaluate();
+						path.replaceWith(t.BooleanLiteral(res.value));
 
 					}
 					path.skip();
@@ -234,28 +192,34 @@ module.exports = function (babel) {
 					var op = path.node.operator;
 					var res;
 					if (lval.type == 'NumericLiteral' && rval.type == 'NumericLiteral') {
-						res = evaluate(op, lval, rval);
+						//res = evaluate(op, lval, rval);
+                        res = path.evaluate();
 						opPath(res,op,path);
+						//path.replaceWith(t.NumericLiteral(res.value));
 
 					} else if (lval.type == 'BooleanLiteral' && rval.type == 'BooleanLiteral') {
-						res = evaluate(op, lval, rval);
-						if (res)
+						//res = evaluate(op, lval, rval);
+						res = path.evaluate();
+						if (res.value)
 							path.replaceWith(t.BooleanLiteral(true));
 						else
 							path.replaceWith(t.BooleanLiteral(false));
 					} else if (lval.type == 'NumericLiteral' && rval.type == 'Identifier') {
 						if (env[rval.name] != null && env[rval.name].value != null) {
 							rval.value = env[rval.name].value;
-							res = evaluate(op, lval, rval);
-							//path.replaceWith(t.NumericLiteral(res));
+							path.node.right = t.NumericLiteral(rval.value);
+							//res = evaluate(op, lval, rval);
+							res = path.evaluate();
+							//path.replaceWith(t.NumericLiteral(res.value));
 							opPath(res,op,path);
 						}
-
 					} else if (lval.type == 'Identifier' && rval.type == 'NumericLiteral') {
 						if (env[lval.name] != null && env[lval.name].value != null) {
 							lval.value = env[lval.name].value;
-							res = evaluate(op, lval, rval);
-							//path.replaceWith(t.NumericLiteral(res));
+							path.node.left = t.NumericLiteral(lval.value);
+							//res = evaluate(op, lval, rval);
+							res = path.evaluate();
+							//path.replaceWith(t.NumericLiteral(res.value));
 							opPath(res,op,path);
 						}
 					}
@@ -264,15 +228,24 @@ module.exports = function (babel) {
 							env[rval.name] != null && env[rval.name].value != null) {
 							lval.value = env[lval.name].value;
 							rval.value = env[rval.name].value;
-							res = evaluate(op, lval, rval);
-							//path.replaceWith(t.NumericLiteral(res));
+							path.node.right = t.NumericLiteral(rval.value);
+							path.node.left = t.NumericLiteral(lval.value);
+							//res = evaluate(op, lval, rval);
+                            res= path.evaluate();
+							//path.replaceWith(t.NumericLiteral(res.value));
 							opPath(res,op,path);
 						}else if(env[lval.name] != null && env[lval.name].value != null && env[rval.name] == null){
 								//path.replaceWith(t.binaryExpression(op,t.numericLiteral(env[lval.name].value),rval));//slower
-                                path.node.left = t.numericLiteral(env[lval.name].value);
+                                path.node.left = t.NumericLiteral(env[lval.name].value);
 						}else if(env[lval.name] == null && env[rval.name] != null && env[rval.name].value != null){
 								//path.replaceWith(t.binaryExpression(op,lval,t.numericLiteral(env[rval.name].value)));//slower
-                                path.node.right = t.numericLiteral(env[rval.name].value);
+                                path.node.right = t.NumericLiteral(env[rval.name].value);
+						}
+						else if(env[lval.name] != null && env[lval.name].value == null && env[rval.name] != null && env[rval.name].value != null){
+							path.node.right = t.NumericLiteral(env[rval.name].value);
+					    }
+						else if(env[lval.name] != null && env[lval.name].value != null && env[rval.name] != null && env[rval.name].value == null){
+							    path.node.left = t.NumericLiteral(env[lval.name].value);
 						}
 
 					}

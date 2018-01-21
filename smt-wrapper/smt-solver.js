@@ -26,8 +26,7 @@ var SMTSolver = (function () {
             }
             else {
                 return {err:null, res:cbExecuteExpression.res};
-            }
-        
+            }    
     };
     SMTSolver.prototype.executeExpression = function (pathFile) {
         var exec;
@@ -94,25 +93,6 @@ var SMTSolver = (function () {
                             obj[identifier] = parseInt(t[k]);
                         }
                     }
-                }
-            }
-        }
-        else if (this.name === 'z3-str') {
-            for (var k = 0; k < t.length; k++) {
-                if (t[k] === ':') {
-                    if (k - 1 >= 0 && k + 3 < t.length) {
-                        identifier = t[k - 1];
-                        value = t[k + 3];
-                        if (value.length > 0 && value.charAt(0) === '"' &&
-                            value.charAt(value.length - 1) === '"') {
-                            value = value.substring(1, value.length - 1);
-                            obj[identifier] = value;
-                        }
-                        else {
-                            obj[identifier] = parseInt(value);
-                        }
-                    }
-                    k += 4;
                 }
             }
         }

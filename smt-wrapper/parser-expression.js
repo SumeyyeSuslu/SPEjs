@@ -42,12 +42,7 @@ var ParserExpression = (function () {
     }
     ParserExpression.prototype.parse = function () {
        var expAST;
-      // var expAST = {body:[]};
-      // expAST.body.push(this.pathConstraints);
         var sExpressions = [];
-        //var currentPT;
-      //  for (var k = 0; k < this.pathConstraints.length; k++) {
-            //currentPT = this.pathConstraints[k];
             try {
                 expAST = esprima.parse(this.pathConstraints);
                 if (!_.isArray(expAST.body)) {
@@ -61,8 +56,6 @@ var ParserExpression = (function () {
                     return {err:new Error('Expression body type should be "ExpressionStatement"' +
                     ' instead of ' + expAST.body[0].type), res:null };
                 } 
-                //this.currentM = currentPT.M;
-                //this.currentS = currentPT.S;
                 this.S_Expression = '';
                 this.handleExpression(expAST.body[0]);
                 sExpressions.push(this.S_Expression);
@@ -71,11 +64,9 @@ var ParserExpression = (function () {
             catch (e) {
                 return {err:new Error('Unable to parse expression. ' + e.message),res:null};
             }
-        //}
         var cbgetSMTExpr = this.getSMTExpression(sExpressions, this.parameters) ;
 
             return {err: cbgetSMTExpr.err, res: cbgetSMTExpr.res};
-    
     };
     ParserExpression.prototype.handleExpression = function (node) {
         var expNode;
@@ -395,7 +386,6 @@ var ParserExpression = (function () {
         var newSExpression;
         var functionToExecute;
         var that = this;
-       // smtExpression = this.getOptionsPart();
         smtExpression += this.getDeclarationPart(parameters);
         for (var k = 0; k < sExpressions.length; k++) {
             var functions = sExpressions[k].match(/<exec=([a-zA-Z0-9_]+)>/g);
@@ -411,7 +401,6 @@ var ParserExpression = (function () {
                             if (isLast) {
                                 smtExpression += '(check-sat)' + '\n';
                                 smtExpression += '(get-model)';
-                              //  return {err :null, res : smtExpression };
                             }
                }
                 else if (isLast) {
@@ -423,53 +412,12 @@ var ParserExpression = (function () {
                         smtExpression += '(get-model)';
                     
                     }
-                   // return {err :null, res :smtExpression };
                 }
             }(sExpressions[k], (k === (sExpressions.length - 1)));
         
     }
     return {err :null, res :smtExpression };
     };
-  /*  ParserExpression.prototype.resolveFunctionCalls = function (functionIndex, functions, sExpression, cb) {
-        var that = this;
-        if (functionIndex < functions.length) {
-            var functionName = functions[functionIndex].substring(6, functions[functionIndex].length - 1);
-            var functionToExecute;
-            var regExpFuncCall;
-            var newSExpression;
-            var retValueFunction;
-            functionToExecute = this.getFunctionToCall(functionName);
-            this.chromeClient.executeFunction(functionToExecute.name, functionToExecute.parameters.join(', '), function (err, res) {
-                if (err) {
-                    cb(new Error('Unable to execute function "' + functionToExecute.name + '"'), null);
-                }
-                else {
-                    retValueFunction = (typeof res.result.value === 'string')
-                        ? '"' + res.result.value + '"'
-                        : res.result.value;
-                    regExpFuncCall = new RegExp('<exec=' + functionName + '>');
-                    newSExpression = sExpression.replace(regExpFuncCall, retValueFunction);
-                    that.resolveFunctionCalls(++functionIndex, functions, newSExpression, cb);
-                }
-            });
-        }
-        else {
-            cb(null, sExpression);
-        }
-    };*/
-    /* ParserExpression.prototype.getOptionsPart = function () {
-        var options;
-        if (this.smtSolverName === 'cvc4') {
-            options = [
-                '(set-option :produce-models true)',
-                '(set-logic QF_S)'
-            ];
-        }
-        else if (this.smtSolverName === 'z3' || this.smtSolverName === 'z3-str') {
-            options = [];
-        }
-        return options.join('\n') + '\n';
-    };*/
     ParserExpression.prototype.getDeclarationPart = function (parameters) {
         var decPart = [];
         for (var k = 0; k < parameters.length; k++) {

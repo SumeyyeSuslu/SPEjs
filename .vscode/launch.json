@@ -9,8 +9,8 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/run.js",
-            "args" :["case0.js"]
+            "program": "${workspaceFolder}/task6.js",
+            "args" :["./examples/functionexample.js"]
         }
     ]
 }
