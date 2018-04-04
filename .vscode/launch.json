@@ -10,7 +10,8 @@
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceFolder}/task6.js",
-            "args" :["./examples/functionexample.js"]
+            "args":["/home/sumeyye/Desktop/while.js"]
+
         }
     ]
 }

@@ -1,4 +1,5 @@
-// run.js
+
+// partial evaluation
 var fs = require('fs');
 var babel = require('babel-core');
 var suslu = require('./suslu');
@@ -21,7 +22,8 @@ fs.readFile(fileName, function (err, data) {
   console.log("Partially Evaluated code:");
   console.log(out.code);
   // print the generated code to a new file
-  fs.writeFile("./result.js", out.code, function (err) {
+  var outputpath = fileName.split(".", 1) + "_out.js";
+  fs.writeFile(outputpath, out.code, function (err) {
     if (err) {
       return console.log(err);
     }
