@@ -112,11 +112,15 @@ module.exports = function (babel) {
 			WhileStatement:{
 				enter(path){
 					whilvl++;
+				},
+				exit(path){
+					whilvl--;
 				}
 			},
+
 			AssignmentExpression: {
 				exit(path) {
-					if ((iflvl == 0) && (whilvl==0)) {
+					if (iflvl == 0) {
 						if (path.node.right.type == "NumericLiteral" || path.node.right.type == "BooleanLiteral") {
 							if (env[path.node.left.name] != null) {
 								env[path.node.left.name].value = path.node.right.value;
@@ -131,6 +135,11 @@ module.exports = function (babel) {
 							}
 						}
 						path.skip();
+					}
+					if (whilvl!=0){
+							if (env[path.node.left.name] != null) {
+								delete env[path.node.left.name];
+							}
 					}
 				}
 			},
