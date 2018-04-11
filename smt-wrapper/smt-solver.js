@@ -19,8 +19,9 @@ var SMTSolver = (function () {
         }
     }
     SMTSolver.prototype.run = function (expression) {
-        utils.writeOnFile(this.pathFile, expression);
+        utils.writeOnFile(this.pathFile, expression); // create temporary smt2 file
         var cbExecuteExpression = this.executeExpression(this.pathFile);
+		utils.removeFile(this.pathFile); // delete temporary smt2 file
             if (cbExecuteExpression.err) {
                 return {err:cbExecuteExpression.err, res:null};
             }
@@ -36,7 +37,6 @@ var SMTSolver = (function () {
         var appPath = this.path;
         args = ['-smt2',pathFile];
         exec = childProcess.spawnSync(appPath, args,{encoding:'utf8'});
-
         result += exec.stdout.toString().trim() + '\n';
         return {err:null, res:result};    
     

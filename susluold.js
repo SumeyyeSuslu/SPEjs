@@ -5,7 +5,7 @@
  * @license GNU-GPL 
  *
  * @author  Sumeyye Suslu https://github.com/SumeyyeSuslu/
- * @updated 2018-04-11
+ * @updated 2018-01-20
  * 
  *
  *
@@ -16,10 +16,7 @@ module.exports = function (babel) {
 	var solver = { name: "z3", path: "/usr/bin/z3", tmpPath: "/home/sumeyye/Desktop/task6/tmp" };
 	var ws = new Set();
 	var env = {
-		q: { 'value': null, 'type': "Int" }, x: { 'value': null, 'type': "Int" },
-		 y: { 'value': 3, 'type': "Int" }, z: { 'value': null, 'type': "Int" }, 
-		 n: { 'value': null, 'type': "Int" }, a: { 'value': null, 'type': "Int" },
-		 b: { 'value': null, 'type': "Int" }, k: { 'value': null, 'type': "abstract" }
+		q: { 'value': null, 'type': "Int" }, x: { 'value': null, 'type': "Int" }, y: { 'value': 3, 'type': "Int" }, z: { 'value': null, 'type': "Int" }, n: { 'value': null, 'type': "Int" }, a: { 'value': null, 'type': "Int" }, b: { 'value': 3, 'type': "Int" }, k: { 'value': null, 'type': "abstract" }
 	};
 	var symExec = new SymbolicExecution(env, solver);
 
@@ -60,19 +57,7 @@ module.exports = function (babel) {
 								path.remove();
 						}
 					} else {
-						var constraintlist=[];
-						path.get('test').traverse({
-						Identifier(path) {
-							if (env[path.node.name].constraint!= null) {
-							constraintlist.push(env[path.node.name].constraint);
-							}
-						}
-						});
-						var qtest = path.node.test;
-						for (var i=0; i<constraintlist.length;i++){
-						qtest = t.LogicalExpression('&&',constraintlist[i],qtest);
-						}
-						var tmpCode = babel.transformFromAst(t.file(t.program([t.expressionStatement(qtest)])));
+						var tmpCode = babel.transformFromAst(t.file(t.program([t.expressionStatement(path.node.test)])));
 
 						var check_SAT = symExec.solvePathConstraint(tmpCode.code);
 						if (check_SAT.err) {
@@ -126,17 +111,10 @@ module.exports = function (babel) {
 			},
 			WhileStatement:{
 				enter(path){
-
 					whilvl++;
 				},
 				exit(path){
 					whilvl--;
-					if (path.node.test.type == "BinaryExpression"){
-						
-						if (env[path.node.test.left.name] != null) 
-							env[path.node.test.left.name].constraint = t.unaryExpression("!",path.node.test);
-
-					}
 				}
 			},
 
@@ -146,24 +124,21 @@ module.exports = function (babel) {
 						if (path.node.right.type == "NumericLiteral" || path.node.right.type == "BooleanLiteral") {
 							if (env[path.node.left.name] != null) {
 								env[path.node.left.name].value = path.node.right.value;
-								if (path.node.right.type == "BooleanLiteral")
-									env[path.node.left.name].type = "Bool";
-								else 
-									env[path.node.left.name].type = "Int";
+								env[path.node.left.name].type = path.node.right.type;
+							} else {
+								env[path.node.left.name] = { value: path.node.right.value };
 							}
-							
 						}
 						else {
 							if (env[path.node.left.name] != null) {
-								//delete env[path.node.left.name];
-								env[path.node.left.name].value = null;
+								delete env[path.node.left.name];
 							}
 						}
 						path.skip();
 					}
 					if (whilvl!=0){
 							if (env[path.node.left.name] != null) {
-								env[path.node.left.name].value = null;
+								delete env[path.node.left.name];
 							}
 					}
 				}
@@ -193,7 +168,7 @@ VariableDeclarator: {
 				exit(path) {
 				
 						if (path.node.init == null) {
-							env[path.node.id.name] = { 'value': null, 'type': "Int" };
+							env[path.node.id.name] = { value: null };
 						}
 						else if (path.node.init.type == 'CallExpression') {
 							env[path.node.id.name] = { 'value': null, 'type': "Int" };
@@ -292,5 +267,4 @@ VariableDeclaration: {
 	};
 
 };
-
 
